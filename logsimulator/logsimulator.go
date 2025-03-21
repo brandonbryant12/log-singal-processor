@@ -2,6 +2,7 @@ package logsimulator
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
@@ -66,8 +67,11 @@ func GeneratePostgresUpdateLog(table string, primaryKey string, columns []string
 
 // GenerateLogs generates a specified number of mock log entries based on the database type,
 // operation, table, and field configurations.
-func GenerateLogs(dbType string, operation string, table string, numRows int, fields []FieldConfig) []interface{} {
+func GenerateLogs(dbType string, operation string, table string, numRows int, fields []FieldConfig, encConfig EncryptionConfig) []interface{} {
 	logs := []interface{}{}
+
+	// Initialize random seed
+	rand.Seed(time.Now().UnixNano())
 
 	// Extract field names to use as columns
 	columns := make([]string, len(fields))
@@ -83,8 +87,18 @@ func GenerateLogs(dbType string, operation string, table string, numRows int, fi
 
 		// Populate before and after values using the field generators
 		for _, field := range fields {
-			before[field.Name] = field.Generator()
-			after[field.Name] = field.Generator()
+			beforeValue := field.Generator()
+			afterValue := field.Generator()
+
+			before[field.Name] = beforeValue
+
+			// Potentially encrypt the after value based on configuration
+			if encryptedValue, err := MaybeEncrypt(afterValue, encConfig); err == nil {
+				after[field.Name] = encryptedValue
+			} else {
+				// If encryption fails, use the original value
+				after[field.Name] = afterValue
+			}
 		}
 
 		// Generate the log based on the database type
@@ -100,6 +114,6 @@ func GenerateLogs(dbType string, operation string, table string, numRows int, fi
 }
 
 // GenerateDefaultLogs generates a specified number of mock log entries using the default field configurations.
-func GenerateDefaultLogs(dbType string, operation string, table string, numRows int) []interface{} {
-	return GenerateLogs(dbType, operation, table, numRows, defaultFields)
+func GenerateDefaultLogs(dbType string, operation string, table string, numRows int, encConfig EncryptionConfig) []interface{} {
+	return GenerateLogs(dbType, operation, table, numRows, defaultFields, encConfig)
 }

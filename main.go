@@ -44,8 +44,11 @@ func main() {
 		}
 	}
 
+	// Get encryption configuration
+	encConfig := config.GetEncryptionConfig()
+
 	// Generate logs for each selected field
-	logs := logsimulator.GenerateLogs(config.DBType, "UPDATE", "users", config.RowCount, fields)
+	logs := logsimulator.GenerateLogs(config.DBType, "UPDATE", "users", config.RowCount, fields, encConfig)
 
 	// Process each log for each selected field
 	for _, fieldName := range config.SelectedFields {
