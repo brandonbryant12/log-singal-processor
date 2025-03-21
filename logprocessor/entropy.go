@@ -1,14 +1,8 @@
-
 package logprocessor
 
 import (
 	"math"
 )
-
-// <ai_context>
-// This file contains the EntropyChangeGenerator, which calculates
-// the change in entropy for a specified field between before and after states.
-// </ai_context>
 
 type EntropyChangeGenerator struct {
 	FieldName string
@@ -29,16 +23,16 @@ func calculateEntropy(s string) float64 {
 	if s == "" {
 		return 0.0
 	}
-	freq := make(map[rune]float64)
-	for _, r := range s {
-		freq[r]++
+	freq := make(map[byte]float64)
+	bytes := []byte(s)
+	for _, b := range bytes {
+		freq[b]++
 	}
 	entropy := 0.0
-	length := float64(len(s))
+	length := float64(len(bytes))
 	for _, count := range freq {
 		p := count / length
 		entropy -= p * math.Log2(p)
 	}
 	return entropy
 }
-      
