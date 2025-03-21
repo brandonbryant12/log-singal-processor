@@ -16,6 +16,14 @@ var logger = slog.New(tint.NewHandler(os.Stdout, &tint.Options{
 	NoColor:    false,
 }))
 
+// Track generator names for better output labeling
+var signalGeneratorNames []string
+
+// RegisterSignalGenerator adds a generator name to the registry for pretty printing
+func RegisterSignalGenerator(name string) {
+	signalGeneratorNames = append(signalGeneratorNames, name)
+}
+
 // LogAnomalyInput logs the anomaly input in a compact format using slog
 func LogAnomalyInput(input AnomalyInput) {
 	// Format the basic identifier as table:column:timestamp

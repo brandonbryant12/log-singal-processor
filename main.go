@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"log-signal-processor/cli"
 	"log-signal-processor/dbparsers"
 	"log-signal-processor/logprocessor"
 	"log-signal-processor/logsimulator"
@@ -10,12 +12,18 @@ import (
 // main is the entry point of the application. It sets up the log parser and signal processor,
 // generates mock logs using the default fields, processes them, and prints the anomaly input for each log.
 func main() {
-	dbType := "oracle"
-	targetColumn := "phone" // The column we're analyzing
+	// Get configuration from CLI
+	config, err := cli.GetConfig()
+	if err != nil {
+		log.Fatalf("Failed to get configuration: %v", err)
+	}
+
+	// Display the selected configuration
+	fmt.Printf("Configuration:\n%s\n\n", config)
 
 	// Initialize the appropriate log parser based on the database type
 	var parser dbparsers.LogParser
-	switch dbType {
+	switch config.DBType {
 	case "oracle":
 		parser = &dbparsers.OracleLogParser{}
 	case "postgres":
@@ -24,37 +32,53 @@ func main() {
 		log.Fatal("Unsupported database type")
 	}
 
-	// Set up the signal processor with generators for the "bio" field
-	processor := logprocessor.SignalProcessor{}
-	processor.AddGenerator(&logprocessor.FieldLevenshteinGenerator{FieldName: targetColumn})
-	processor.AddGenerator(&logprocessor.EntropyChangeGenerator{FieldName: targetColumn})
-
-	// Generate 5 mock update logs for the "users" table using default fields
-	logs := logsimulator.GenerateDefaultLogs(dbType, "UPDATE", "users", 5)
-
-	// Process each log and generate anomaly input
-	for _, rawLog := range logs {
-		logData, err := parser.ParseLog(rawLog)
-		if err != nil {
-			log.Printf("Failed to parse log: %v", err)
-			continue
+	// Create field configurations from selected fields
+	fields := make([]logsimulator.FieldConfig, 0, len(config.SelectedFields))
+	for _, fieldName := range config.SelectedFields {
+		// Find the matching default field
+		for _, defaultField := range logsimulator.GetDefaultFields() {
+			if defaultField.Name == fieldName {
+				fields = append(fields, defaultField)
+				break
+			}
 		}
-		vector := processor.GenerateSignalVector(logData)
-		// Get before and after values for the target column
-		beforeValue := logData.Before[targetColumn]
-		afterValue := logData.After[targetColumn]
+	}
 
-		anomalyInput := logprocessor.AnomalyInput{
-			Operation:    logData.Operation,
-			Table:        logData.Table,
-			Column:       targetColumn, // Single column instead of Columns slice
-			Timestamp:    logData.Timestamp,
-			BeforeValue:  beforeValue,
-			AfterValue:   afterValue,
-			SignalVector: vector,
+	// Generate logs for each selected field
+	logs := logsimulator.GenerateLogs(config.DBType, "UPDATE", "users", config.RowCount, fields)
+
+	// Process each log for each selected field
+	for _, fieldName := range config.SelectedFields {
+		// Create signal processor for this field
+		processor := logprocessor.SignalProcessor{}
+		processor.AddGenerator(&logprocessor.FieldLevenshteinGenerator{FieldName: fieldName})
+		processor.AddGenerator(&logprocessor.EntropyChangeGenerator{FieldName: fieldName})
+
+		fmt.Printf("\n=== Processing field: %s ===\n", fieldName)
+
+		for _, rawLog := range logs {
+			logData, err := parser.ParseLog(rawLog)
+			if err != nil {
+				log.Printf("Failed to parse log: %v", err)
+				continue
+			}
+
+			vector := processor.GenerateSignalVector(logData)
+			beforeValue := logData.Before[fieldName]
+			afterValue := logData.After[fieldName]
+
+			anomalyInput := logprocessor.AnomalyInput{
+				Operation:    logData.Operation,
+				Table:        logData.Table,
+				Column:       fieldName,
+				Timestamp:    logData.Timestamp,
+				BeforeValue:  beforeValue,
+				AfterValue:   afterValue,
+				SignalVector: vector,
+			}
+
+			// Log the anomaly input
+			logprocessor.LogAnomalyInput(anomalyInput)
 		}
-
-		// Use the new slog-based logger instead of pretty printing
-		logprocessor.LogAnomalyInput(anomalyInput)
 	}
 }

@@ -1,9 +1,9 @@
-
 package logsimulator
 
 import (
 	"fmt"
 	"time"
+
 	"github.com/brianvoe/gofakeit/v7"
 )
 
@@ -20,6 +20,22 @@ var defaultFields = []FieldConfig{
 	{Name: "email", Generator: gofakeit.Email},
 	{Name: "phone", Generator: gofakeit.Phone},
 	{Name: "address", Generator: func() string { return gofakeit.Address().Address }},
+}
+
+// GetDefaultFields returns the predefined field configurations.
+// This allows the CLI to access the available fields.
+func GetDefaultFields() []FieldConfig {
+	return defaultFields
+}
+
+// GetFieldByName returns a field configuration by name
+func GetFieldByName(name string) (FieldConfig, bool) {
+	for _, field := range defaultFields {
+		if field.Name == name {
+			return field, true
+		}
+	}
+	return FieldConfig{}, false
 }
 
 // GenerateOracleUpdateLog creates a mock log entry for an Oracle UPDATE operation.
@@ -87,4 +103,3 @@ func GenerateLogs(dbType string, operation string, table string, numRows int, fi
 func GenerateDefaultLogs(dbType string, operation string, table string, numRows int) []interface{} {
 	return GenerateLogs(dbType, operation, table, numRows, defaultFields)
 }
-      
