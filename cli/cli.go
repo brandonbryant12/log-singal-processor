@@ -36,7 +36,6 @@ const (
 	AESModeStep        // New step for AES mode of operation
 	EncryptionPercentageStep
 	RowCountStep
-	OutputFormatStep  // New step for output format
 	ConfigSummaryStep // New step to show summary before finishing
 	FinishedStep
 )
@@ -73,7 +72,6 @@ type OutputFormat string
 
 const (
 	OutputFormatJSON OutputFormat = "JSON"
-	OutputFormatCSV  OutputFormat = "CSV"
 )
 
 // Config holds the user's configuration choices
@@ -108,10 +106,9 @@ type Model struct {
 	aesKeyBitSizeCursor  int
 	encryptionPercentage textinput.Model
 	rowCountInput        textinput.Model
-	outputFormatOptions  []OutputFormat // New field for output formats
-	outputFormatCursor   int
-	config               Config
-	err                  error
+
+	config Config
+	err    error
 	// Navigation tracking
 	previousSteps []Step // For back button functionality
 }
@@ -149,9 +146,7 @@ func InitialModel() Model {
 		aesKeyBitSizeCursor:  2, // Default to 256-bit
 		encryptionPercentage: encPercent,
 		rowCountInput:        rowCount,
-		outputFormatOptions:  []OutputFormat{OutputFormatJSON, OutputFormatCSV},
-		outputFormatCursor:   0,
-		config:               Config{},
+		config:               Config{OutputFormat: OutputFormatJSON}, // Set default output format to JSON
 		previousSteps:        []Step{},
 	}
 }
@@ -277,10 +272,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.err = nil
 				m.config.RowCount = val
-				m.goToStep(OutputFormatStep)
-
-			case OutputFormatStep:
-				m.config.OutputFormat = m.outputFormatOptions[m.outputFormatCursor]
 				m.goToStep(ConfigSummaryStep)
 
 			case ConfigSummaryStep:
@@ -326,11 +317,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.aesKeyBitSizeCursor = len(m.aesKeyBitSizeOptions) - 1
 				}
 
-			case OutputFormatStep:
-				m.outputFormatCursor--
-				if m.outputFormatCursor < 0 {
-					m.outputFormatCursor = len(m.outputFormatOptions) - 1
-				}
 			}
 
 		case "down", "j":
@@ -353,8 +339,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case AESKeyBitSizeStep:
 				m.aesKeyBitSizeCursor = (m.aesKeyBitSizeCursor + 1) % len(m.aesKeyBitSizeOptions)
 
-			case OutputFormatStep:
-				m.outputFormatCursor = (m.outputFormatCursor + 1) % len(m.outputFormatOptions)
 			}
 
 		case " ": // Spacebar
@@ -569,21 +553,6 @@ func (m Model) View() string {
 			s += "\n" + errorStyle.Render(m.err.Error())
 		}
 		s += "\n" + helpStyle.Render("Enter: Confirm • Esc: Back")
-
-	case OutputFormatStep:
-		s += titleStyle.Render("Select output format:") + "\n\n"
-
-		for i, option := range m.outputFormatOptions {
-			cursor := " "
-			if m.outputFormatCursor == i {
-				cursor = ">"
-				s += activeItemStyle.Render(fmt.Sprintf("%s %s", cursor, option)) + "\n"
-			} else {
-				s += itemStyle.Render(fmt.Sprintf("%s %s", cursor, option)) + "\n"
-			}
-		}
-
-		s += "\n" + helpStyle.Render("↑/↓: Navigate • Enter: Select • Esc: Back")
 
 	case ConfigSummaryStep:
 		s += titleStyle.Render("Configuration Summary:") + "\n\n"
