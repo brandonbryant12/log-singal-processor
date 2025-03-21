@@ -1,4 +1,3 @@
-
 package logprocessor
 
 import (
@@ -48,4 +47,3 @@ type AnomalyInput struct {
 	Timestamp    time.Time
 	SignalVector []float64
 }
-      
