@@ -30,6 +30,19 @@ type SignalProcessor struct {
 
 func (sp *SignalProcessor) AddGenerator(gen SignalGenerator) {
 	sp.generators = append(sp.generators, gen)
+
+	// Register generator name for pretty printing
+	var name string
+	switch g := gen.(type) {
+	case *FieldLevenshteinGenerator:
+		name = "Levenshtein(" + g.FieldName + ")"
+	case *EntropyChangeGenerator:
+		name = "Entropy(" + g.FieldName + ")"
+	default:
+		name = "Unknown Generator"
+	}
+
+	RegisterSignalGenerator(name)
 }
 
 func (sp *SignalProcessor) GenerateSignalVector(logData LogData) []float64 {
@@ -43,7 +56,7 @@ func (sp *SignalProcessor) GenerateSignalVector(logData LogData) []float64 {
 type AnomalyInput struct {
 	Operation    string
 	Table        string
-	Columns      []string
+	Column       string // Changed from Columns []string to a single Column
 	Timestamp    time.Time
 	SignalVector []float64
 }

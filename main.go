@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"log-signal-processor/dbparsers"
 	"log-signal-processor/logprocessor"
@@ -12,6 +11,7 @@ import (
 // generates mock logs using the default fields, processes them, and prints the anomaly input for each log.
 func main() {
 	dbType := "oracle"
+	targetColumn := "bio" // The column we're analyzing
 
 	// Initialize the appropriate log parser based on the database type
 	var parser dbparsers.LogParser
@@ -26,8 +26,8 @@ func main() {
 
 	// Set up the signal processor with generators for the "bio" field
 	processor := logprocessor.SignalProcessor{}
-	processor.AddGenerator(&logprocessor.FieldLevenshteinGenerator{FieldName: "bio"})
-	processor.AddGenerator(&logprocessor.EntropyChangeGenerator{FieldName: "bio"})
+	processor.AddGenerator(&logprocessor.FieldLevenshteinGenerator{FieldName: targetColumn})
+	processor.AddGenerator(&logprocessor.EntropyChangeGenerator{FieldName: targetColumn})
 
 	// Generate 5 mock update logs for the "users" table using default fields
 	logs := logsimulator.GenerateDefaultLogs(dbType, "UPDATE", "users", 5)
@@ -43,10 +43,12 @@ func main() {
 		anomalyInput := logprocessor.AnomalyInput{
 			Operation:    logData.Operation,
 			Table:        logData.Table,
-			Columns:      logData.Columns,
+			Column:       targetColumn, // Single column instead of Columns slice
 			Timestamp:    logData.Timestamp,
 			SignalVector: vector,
 		}
-		fmt.Printf("AnomalyInput: %+v\n", anomalyInput)
+
+		// Use the new slog-based logger instead of pretty printing
+		logprocessor.LogAnomalyInput(anomalyInput)
 	}
 }
