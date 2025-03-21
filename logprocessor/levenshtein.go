@@ -1,10 +1,5 @@
 package logprocessor
 
-// <ai_context>
-// This file contains the FieldLevenshteinGenerator, which calculates
-// the Levenshtein distance between before and after values of a field.
-// </ai_context>
-
 type FieldLevenshteinGenerator struct {
 	FieldName string
 }
