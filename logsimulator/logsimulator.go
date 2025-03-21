@@ -1,3 +1,4 @@
+
 package logsimulator
 
 import (
@@ -21,6 +22,27 @@ var defaultFields = []FieldConfig{
 	{Name: "email", Generator: gofakeit.Email},
 	{Name: "phone", Generator: gofakeit.Phone},
 	{Name: "address", Generator: func() string { return gofakeit.Address().Address }},
+	{Name: "name", Generator: gofakeit.Name},
+	{Name: "username", Generator: gofakeit.Username},
+	{Name: "city", Generator: gofakeit.City},
+	{Name: "state", Generator: gofakeit.State},
+	{Name: "country", Generator: gofakeit.Country},
+	{Name: "latitude", Generator: func() string { return fmt.Sprintf("%f", gofakeit.Latitude()) }},
+	{Name: "longitude", Generator: func() string { return fmt.Sprintf("%f", gofakeit.Longitude()) }},
+	{Name: "domain_name", Generator: gofakeit.DomainName},
+	{Name: "ipv4_address", Generator: gofakeit.IPv4Address},
+	{Name: "ipv6_address", Generator: gofakeit.IPv6Address},
+	{Name: "ach_routing", Generator: gofakeit.AchRouting},
+	{Name: "ach_account", Generator: gofakeit.AchAccount},
+	{Name: "bitcoin_address", Generator: gofakeit.BitcoinAddress},
+	{Name: "job_title", Generator: gofakeit.JobTitle},
+	{Name: "job_descriptor", Generator: gofakeit.JobDescriptor},
+	{Name: "job_level", Generator: gofakeit.JobLevel},
+	{Name: "product_name", Generator: gofakeit.ProductName},
+	{Name: "breakfast", Generator: gofakeit.Breakfast},
+	{Name: "animal", Generator: gofakeit.Animal},
+	{Name: "celebrity_actor", Generator: gofakeit.CelebrityActor},
+	{Name: "movie_name", Generator: gofakeit.MovieName},
 }
 
 // GetDefaultFields returns the predefined field configurations.
@@ -117,3 +139,4 @@ func GenerateLogs(dbType string, operation string, table string, numRows int, fi
 func GenerateDefaultLogs(dbType string, operation string, table string, numRows int, encConfig EncryptionConfig) []interface{} {
 	return GenerateLogs(dbType, operation, table, numRows, defaultFields, encConfig)
 }
+      

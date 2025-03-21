@@ -1,3 +1,4 @@
+
 package cli
 
 import (
@@ -128,11 +129,18 @@ func InitialModel() Model {
 	encPercent.CharLimit = 3
 	encPercent.Width = 20
 
+	// Get default fields from logsimulator
+	defaultFields := logsimulator.GetDefaultFields()
+	fieldOptions := make([]string, len(defaultFields))
+	for i, field := range defaultFields {
+		fieldOptions[i] = field.Name
+	}
+
 	return Model{
 		step:                 DBSelectionStep,
 		dbOptions:            []string{"oracle", "postgres"},
 		dbCursor:             0,
-		fieldOptions:         []string{"bio", "email", "phone", "address"},
+		fieldOptions:         fieldOptions,
 		fieldCursors:         make(map[int]struct{}),
 		fieldCursor:          0,
 		signalOptions:        []SignalType{SignalTypeAll, SignalTypeLevenshtein, SignalTypeEntropy},
@@ -642,3 +650,4 @@ func formatSignalTypes(signals []SignalType) string {
 	}
 	return strings.Join(strs, ", ")
 }
+      
