@@ -53,6 +53,11 @@ func (sp *SignalProcessor) GenerateSignalVector(logData LogData) []float64 {
 	return vector
 }
 
+// GetGenerators returns the list of signal generators
+func (sp *SignalProcessor) GetGenerators() []SignalGenerator {
+	return sp.generators
+}
+
 type AnomalyInput struct {
 	Operation    string
 	Table        string

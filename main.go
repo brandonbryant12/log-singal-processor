@@ -51,8 +51,28 @@ func main() {
 	for _, fieldName := range config.SelectedFields {
 		// Create signal processor for this field
 		processor := logprocessor.SignalProcessor{}
-		processor.AddGenerator(&logprocessor.FieldLevenshteinGenerator{FieldName: fieldName})
-		processor.AddGenerator(&logprocessor.EntropyChangeGenerator{FieldName: fieldName})
+
+		// Add generators based on selected signals
+		useAllSignals := false
+		for _, signal := range config.SelectedSignals {
+			if signal == cli.SignalTypeAll {
+				useAllSignals = true
+				break
+			}
+		}
+
+		if useAllSignals || contains(config.SelectedSignals, cli.SignalTypeLevenshtein) {
+			processor.AddGenerator(&logprocessor.FieldLevenshteinGenerator{FieldName: fieldName})
+		}
+
+		if useAllSignals || contains(config.SelectedSignals, cli.SignalTypeEntropy) {
+			processor.AddGenerator(&logprocessor.EntropyChangeGenerator{FieldName: fieldName})
+		}
+
+		// Skip fields with no generators
+		if len(processor.GetGenerators()) == 0 {
+			continue
+		}
 
 		fmt.Printf("\n=== Processing field: %s ===\n", fieldName)
 
@@ -81,4 +101,14 @@ func main() {
 			logprocessor.LogAnomalyInput(anomalyInput)
 		}
 	}
+}
+
+// contains checks if a slice of SignalType contains a specific value
+func contains(signals []cli.SignalType, target cli.SignalType) bool {
+	for _, signal := range signals {
+		if signal == target {
+			return true
+		}
+	}
+	return false
 }
