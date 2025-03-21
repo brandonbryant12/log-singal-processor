@@ -4,12 +4,6 @@ import (
 	"time"
 )
 
-// <ai_context>
-// This package contains the core logic for processing database logs,
-// generating signals for anomaly detection, and preparing data for a
-// third-party anomaly detection system.
-// </ai_context>
-
 type LogData struct {
 	Operation     string
 	Table         string
