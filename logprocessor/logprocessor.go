@@ -58,5 +58,7 @@ type AnomalyInput struct {
 	Table        string
 	Column       string // Changed from Columns []string to a single Column
 	Timestamp    time.Time
+	BeforeValue  interface{} // Value of the column before change
+	AfterValue   interface{} // Value of the column after change
 	SignalVector []float64
 }

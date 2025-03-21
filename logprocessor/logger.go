@@ -34,8 +34,23 @@ func LogAnomalyInput(input AnomalyInput) {
 		vectorStrs[i] = fmt.Sprintf("%s=%.4f", name, val)
 	}
 
-	// Log the operation and vectors
+	// Format the before and after values
+	beforeStr := fmt.Sprintf("%v", input.BeforeValue)
+	afterStr := fmt.Sprintf("%v", input.AfterValue)
+
+	// If the values are long strings, trim them
+	const maxValueLength = 30
+	if len(beforeStr) > maxValueLength {
+		beforeStr = beforeStr[:maxValueLength] + "..."
+	}
+	if len(afterStr) > maxValueLength {
+		afterStr = afterStr[:maxValueLength] + "..."
+	}
+
+	// Log the operation, values, and vectors
 	logger.Info(input.Operation,
 		"id", identifier,
+		"before", beforeStr,
+		"after", afterStr,
 		"signals", strings.Join(vectorStrs, ", "))
 }

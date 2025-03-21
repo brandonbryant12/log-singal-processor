@@ -11,7 +11,7 @@ import (
 // generates mock logs using the default fields, processes them, and prints the anomaly input for each log.
 func main() {
 	dbType := "oracle"
-	targetColumn := "bio" // The column we're analyzing
+	targetColumn := "phone" // The column we're analyzing
 
 	// Initialize the appropriate log parser based on the database type
 	var parser dbparsers.LogParser
@@ -40,11 +40,17 @@ func main() {
 			continue
 		}
 		vector := processor.GenerateSignalVector(logData)
+		// Get before and after values for the target column
+		beforeValue := logData.Before[targetColumn]
+		afterValue := logData.After[targetColumn]
+
 		anomalyInput := logprocessor.AnomalyInput{
 			Operation:    logData.Operation,
 			Table:        logData.Table,
 			Column:       targetColumn, // Single column instead of Columns slice
 			Timestamp:    logData.Timestamp,
+			BeforeValue:  beforeValue,
+			AfterValue:   afterValue,
 			SignalVector: vector,
 		}
 
