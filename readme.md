@@ -20,7 +20,7 @@ The system comprises four main components:
 ```mermaid
 graph LR
     A[Database] -->|Raw Logs| B[Database Log Parser]
-    B -->|Parsed Logs (LogData)| C[Log Processor]
+    B -->|Parsed Logs| C[Log Processor]
     C -->|Signal Vector| D[Anomaly Detection System]
 ```
 
@@ -72,16 +72,16 @@ v = [f₁(logData), f₂(logData), …, fₙ(logData)]
 
 ```mermaid
 sequenceDiagram
-    participant Database
-    participant LogParser
-    participant SignalProcessor
-    participant AnomalyDetection
+    participant DB as Database
+    participant LP as LogParser
+    participant SP as SignalProcessor
+    participant AD as AnomalyDetection
 
-    Database->>LogParser: Raw log entry
-    LogParser->>LogParser: Parse raw log into LogData
-    LogParser->>SignalProcessor: Send LogData
-    SignalProcessor->>SignalProcessor: Generate signal vector using SignalGenerators
-    SignalProcessor->>AnomalyDetection: Send AnomalyInput (metadata + signal vector)
+    DB->>LP: Raw log entry
+    LP->>LP: Parse raw log into LogData
+    LP->>SP: Send LogData
+    SP->>SP: Generate signal vector
+    SP->>AD: Send AnomalyInput
 ```
 
 ### 3. Log Simulator (`logsimulator`)
